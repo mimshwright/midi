@@ -1,5 +1,5 @@
 {
-  "name": "midi",
+  "name": "music-notation",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
