@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import Staff from "./Staff";
-import midiInit from "../midi";
+import initializeMidiHandler from "../midi";
 
 class App extends Component {
   state = {
@@ -9,8 +9,11 @@ class App extends Component {
   };
 
   componentDidMount() {
-    const isMidiAvailable = midiInit((notes) => this.setState({ notes }));
-    this.setState({ isMidiAvailable });
+    try {
+      initializeMidiHandler(window.navigator, (notes) => this.setState({ notes }));
+    } catch (error) {
+      this.setState({isMidiAvailable: false});
+    }
   }
 
   render() {

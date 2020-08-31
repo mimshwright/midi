@@ -13,66 +13,54 @@ const OCTAVE = [
   "B"
 ];
 
-function makeMidiNoteMappings() {
-  const notes = {};
+const MIDI_PRESS = 144;
+const MIDI_RELEASE = 128;
 
-  for (let i = 21; i <= 108; i += 1) {
-    notes[i] = OCTAVE[i % 12];
+
+const SEMITONES = 12;
+
+export const midiCodeToNote = midiCode => midiCode % SEMITONES;
+export const noteToString = note => OCTAVE[note];
+
+async function initializeMidiHandler( navigator, callback) {
+ 
+  if (navigator.requestMIDIAccess === false ) {
+    throw new Error("No MIDI API available.");
+  }
+  
+  const midiHandler = await navigator.requestMIDIAccess();
+  const inputs = midiHandler.inputs.values();
+  const notes = [];
+
+  const onMidiMessage = (event) => {
+    const [command, rawValue] = event.data;
+
+    if (command === MIDI_PRESS) {
+      const note = midiCodeToNote(rawValue);
+      notes.push({
+        name: noteToString(note),
+        note,
+        rawValue,
+        command
+      });
+
+      if (callback) { callback(notes); }
+    }
+
+    if (command === MIDI_RELEASE) {
+      notes.splice(0, notes.length);
+    }
+  };
+  
+  let input;
+  for (input of inputs) {
+   input.onmidimessage = onMidiMessage;
   }
 
-  return notes;
+
+  return true;
 }
 
-function makeNoteCoords() {
-  const NOTES = {};
-  let yPos = 134.5;
+export default initializeMidiHandler;
 
-  for (let i = 41; i <= 79; i += 1) {
-    if (i === 60) yPos = 65.5;
-    NOTES[i] = yPos;
-    yPos -= 5;
-    if (![47, 52, 59, 64, 71, 76].includes(i)) i += 1;
-  }
 
-  return NOTES;
-}
-
-const NOTE_COORDS = makeNoteCoords();
-const MIDI_NOTE_MAPPINGS = makeMidiNoteMappings();
-
-function midiInit(cb) {
-  if (navigator.requestMIDIAccess) {
-    navigator.requestMIDIAccess().then((access) => {
-      const inputs = access.inputs.values();
-      const notes = [];
-
-      for (const input of inputs) {
-        input.onmidimessage = (e) => {
-          const [command, noteValue] = e.data;
-
-          // note begins
-          if (command === 144) {
-            notes.push({
-              name: MIDI_NOTE_MAPPINGS[noteValue],
-              value: noteValue,
-              coords: NOTE_COORDS[noteValue],
-            });
-
-            if (cb) cb(notes);
-          }
-
-          // note ends
-          if (command === 128) {
-            notes.splice(0, notes.length);
-          }
-        };
-      }
-    });
-
-    return true;
-  }
-
-  return false;
-}
-
-export default midiInit;
