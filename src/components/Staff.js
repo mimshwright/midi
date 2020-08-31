@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
-import { NOTE_COORDS } from "../config";
 
 const LENGTH = 100;
 
@@ -22,7 +21,7 @@ class Staff extends Component {
   };
 
   render() {
-    const { notes } = this.props;    
+    const { notes } = this.props;
 
     return (
       <svg width={LENGTH} height="140">
@@ -41,7 +40,7 @@ class Staff extends Component {
         </g>
 
         {notes.map(note => {
-          const y = NOTE_COORDS[note];
+          const y = note.coords;
 
           if (!y) return null;
           return this.placeNote(y);
@@ -57,7 +56,7 @@ class Staff extends Component {
 }
 
 Staff.propTypes = {
-  notes: PropTypes.arrayOf(PropTypes.number).isRequired
+  notes: PropTypes.arrayOf(PropTypes.object).isRequired
 };
 
 export default Staff;
