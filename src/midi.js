@@ -13,6 +13,9 @@ const OCTAVE = [
   "B"
 ];
 
+const WHOLE_NOTES = [0,2,4,5,7,9,11];
+const HALF_NOTES = [1,3,6,8,10];
+
 const MIDI_PRESS = 144;
 const MIDI_RELEASE = 128;
 
@@ -37,12 +40,21 @@ async function initializeMidiHandler( navigator, callback) {
 
     if (command === MIDI_PRESS) {
       const note = midiCodeToNote(rawValue);
-      notes.push({
+
+      const isSharp = HALF_NOTES.includes(note);
+      const nearestWholeNote = isSharp ? note - 1 : note;
+
+      const noteProps = {
         name: noteToString(note),
         note,
         rawValue,
-        command
-      });
+        command,
+        nearestWholeNoteIndex: WHOLE_NOTES.indexOf(nearestWholeNote),
+        isSharp
+      }
+      notes.push(noteProps);
+      
+      console.log(noteProps.name);
 
       if (callback) { callback(notes); }
     }
